@@ -164,13 +164,14 @@ async function processRepo(repoFullName) {
   }
 
   // Fetch from API
-  let repoMeta, views, clones, referrers;
+  let repoMeta, views, clones, referrers, releases;
   try {
-    [repoMeta, views, clones, referrers] = await Promise.all([
+    [repoMeta, views, clones, referrers, releases] = await Promise.all([
       apiGet(`/repos/${owner}/${repo}`),
       apiGet(`/repos/${owner}/${repo}/traffic/views`),
       apiGet(`/repos/${owner}/${repo}/traffic/clones`),
       apiGet(`/repos/${owner}/${repo}/traffic/popular/referrers`),
+      apiGet(`/repos/${owner}/${repo}/releases`),
     ]);
   } catch (err) {
     console.error(`  ✗  API error for ${repoFullName}: ${err.message}`);
@@ -180,7 +181,16 @@ async function processRepo(repoFullName) {
   console.log(`  Views: ${views.count} total, ${views.uniques} unique (${views.views?.length || 0} days)`);
   console.log(`  Clones: ${clones.count} total, ${clones.uniques} unique (${clones.clones?.length || 0} days)`);
   console.log(`  Referrers: ${referrers.length} sources`);
+  console.log(`  Releases: ${Array.isArray(releases) ? releases.length : 0} found`);
   console.log(`  Forks: ${repoMeta.forks_count}`);
+
+  // Build releases summary (tag + total download count across all assets)
+  const releaseSummary = Array.isArray(releases)
+    ? releases.map((r) => ({
+        tag: r.tag_name,
+        downloads: (r.assets || []).reduce((sum, a) => sum + (a.download_count || 0), 0),
+      }))
+    : [];
 
   // Merge
   const mergedData = {
@@ -192,6 +202,7 @@ async function processRepo(repoFullName) {
       views: mergeDailyData(existing.data.views || [], views.views || []),
       clones: mergeDailyData(existing.data.clones || [], clones.clones || []),
       referrers: mergeReferrers(existing.data.referrers || [], referrers || []),
+      releases: releaseSummary,
     },
   };
 
