@@ -267,8 +267,8 @@ const App = (() => {
       const idx = i;
 
       const forks = data ? data.forks || 0 : 0;
-      const issues = data && data.issues ? data.issues : { total: 0, open: 0 };
-      const pullRequests = data && data.pullRequests ? data.pullRequests : { open: 0 };
+      const issues = data && data.issues ? data.issues : { closed: 0, open: 0 };
+      const pullRequests = data && data.pullRequests ? data.pullRequests : { merged: 0, open: 0 };
       const views = data && data.data ? data.data.views || [] : [];
       const clones = data && data.data ? data.data.clones || [] : [];
       const referrers = data && data.data ? data.data.referrers || [] : [];
@@ -296,17 +296,21 @@ const App = (() => {
           <a class="repo-name" href="${repoUrl}" target="_blank" rel="noopener noreferrer">
             <span class="owner">${ownerEsc} /</span> ${repoEsc}
           </a>
-          <a class="fork-badge" href="${repoUrl}/forks" target="_blank" rel="noopener noreferrer" title="${fmt(forks)} forks">
+          <a class="repo-badge" href="${repoUrl}/network/members" target="_blank" rel="noopener noreferrer" title="Forks">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 0-1.5 0v.878H6.75v-.878a2.25 2.25 0 1 0-1.5 0ZM8 13.5a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Zm0-8.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM4.25 5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm7.5 0a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM8 9v2.5"/></svg>
-            ${fmt(forks)}
+            Forks
           </a>
-          <a class="issue-badge${issues.open > 0 ? " issue-badge-active" : ""}" href="${repoUrl}/issues" target="_blank" rel="noopener noreferrer" title="${fmt(issues.total)} total / ${fmt(issues.open)} open">
+          <a class="repo-badge" href="${repoUrl}/issues" target="_blank" rel="noopener noreferrer" title="Issues">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M8 4.5v4M8 10.5v.5"/></svg>
-            ${fmt(issues.total)} · ${fmt(issues.open)}
+            <span title="Closed issues">${fmt(issues.closed)}</span>
+            <span class="badge-sep">/</span>
+            <span class="${issues.open > 0 ? "badge-accent" : ""}" title="Open issues">${fmt(issues.open)}</span>
           </a>
-          <a class="pr-badge" href="${repoUrl}/pulls" target="_blank" rel="noopener noreferrer" title="${fmt(pullRequests.open)} open pull requests">
+          <a class="repo-badge" href="${repoUrl}/pulls" target="_blank" rel="noopener noreferrer" title="Pull requests">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M10 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM6 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM6 7v6M10 5v4"/></svg>
-            ${fmt(pullRequests.open)}
+            <span title="Merged PRs">${fmt(pullRequests.merged)}</span>
+            <span class="badge-sep">/</span>
+            <span class="${pullRequests.open > 0 ? "badge-accent" : ""}" title="Open PRs">${fmt(pullRequests.open)}</span>
           </a>
           <button class="csv-btn" data-repo-idx="${idx}" onclick="App.exportCSV(${idx})"${dataError ? " disabled" : ""}>
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12V14H12V12M8 2V10M5 7L8 10L11 7"/></svg>
@@ -406,9 +410,9 @@ const App = (() => {
     }
     let rows = "";
     for (const r of referrers) {
-      rows += `<tr><td>${esc(r.referrer)}</td><td>${fmt(r.count)}</td></tr>`;
+      rows += `<tr><td>${esc(r.referrer)}</td><td>${fmt(r.count)}</td><td>${fmt(r.uniques)}</td></tr>`;
     }
-    return `<div class="ref-scroll-container"><table class="ref-table"><thead><tr><th>Site</th><th>Visits</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    return `<div class="ref-scroll-container"><table class="ref-table"><thead><tr><th>Site</th><th>Visits</th><th>Unique</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
   // ── Charts ───────────────────────────────────────────────────────────────
