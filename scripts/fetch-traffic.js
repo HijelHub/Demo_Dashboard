@@ -179,15 +179,17 @@ async function processRepo(repoFullName) {
   }
 
   // Fetch issue and PR counts via the search API (returns total_count without pagination)
-  let totalIssues = 0, openIssues = 0, openPRs = 0;
+  let closedIssues = 0, openIssues = 0, mergedPRs = 0, openPRs = 0;
   try {
-    const [issuesAll, issuesOpen, prsOpen] = await Promise.all([
-      apiGet(`/search/issues?q=repo:${owner}/${repo}+is:issue&per_page=1`),
+    const [issuesClosed, issuesOpen, prsMerged, prsOpen] = await Promise.all([
+      apiGet(`/search/issues?q=repo:${owner}/${repo}+is:issue+is:closed&per_page=1`),
       apiGet(`/search/issues?q=repo:${owner}/${repo}+is:issue+state:open&per_page=1`),
+      apiGet(`/search/issues?q=repo:${owner}/${repo}+is:pr+is:merged&per_page=1`),
       apiGet(`/search/issues?q=repo:${owner}/${repo}+is:pr+state:open&per_page=1`),
     ]);
-    totalIssues = issuesAll.total_count || 0;
+    closedIssues = issuesClosed.total_count || 0;
     openIssues = issuesOpen.total_count || 0;
+    mergedPRs = prsMerged.total_count || 0;
     openPRs = prsOpen.total_count || 0;
   } catch (err) {
     console.log(`  ⚠  Could not fetch issue/PR counts: ${err.message}`);
@@ -197,8 +199,8 @@ async function processRepo(repoFullName) {
   console.log(`  Clones: ${clones.count} total, ${clones.uniques} unique (${clones.clones?.length || 0} days)`);
   console.log(`  Referrers: ${referrers.length} sources`);
   console.log(`  Releases: ${Array.isArray(releases) ? releases.length : 0} found`);
-  console.log(`  Issues: ${totalIssues} total, ${openIssues} open`);
-  console.log(`  PRs: ${openPRs} open`);
+  console.log(`  Issues: ${closedIssues} closed, ${openIssues} open`);
+  console.log(`  PRs: ${mergedPRs} merged, ${openPRs} open`);
   console.log(`  Forks: ${repoMeta.forks_count}`);
 
   // Build releases summary (tag + total download count across all assets)
@@ -215,8 +217,8 @@ async function processRepo(repoFullName) {
     repo: repoFullName,
     updated: new Date().toISOString(),
     forks: repoMeta.forks_count || 0,
-    issues: { total: totalIssues, open: openIssues },
-    pullRequests: { open: openPRs },
+    issues: { closed: closedIssues, open: openIssues },
+    pullRequests: { merged: mergedPRs, open: openPRs },
     data: {
       views: mergeDailyData(existing.data.views || [], views.views || []),
       clones: mergeDailyData(existing.data.clones || [], clones.clones || []),
