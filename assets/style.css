@@ -185,9 +185,35 @@ body {
   color: var(--tx3); background: var(--bg2);
   border: 1px solid var(--border); border-radius: 20px;
   padding: 2px 9px 2px 7px; transition: background 0.3s, border-color 0.3s;
+  text-decoration: none; cursor: pointer;
 }
 
+.fork-badge:hover { background: var(--bg3); color: var(--tx2); text-decoration: none; }
 .fork-badge svg { width: 12px; height: 12px; opacity: 0.6; }
+
+.issue-badge,
+.pr-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-family: var(--font-m);
+  color: var(--tx3); background: var(--bg2);
+  border: 1px solid var(--border); border-radius: 20px;
+  padding: 2px 9px 2px 7px; transition: all 0.15s;
+  text-decoration: none; cursor: pointer;
+}
+
+.issue-badge:hover,
+.pr-badge:hover { background: var(--bg3); color: var(--tx2); text-decoration: none; }
+
+.issue-badge svg,
+.pr-badge svg { width: 12px; height: 12px; opacity: 0.6; }
+
+.issue-badge-active {
+  background: var(--accent-soft); color: var(--accent);
+  border-color: var(--accent);
+}
+
+.issue-badge-active svg { opacity: 0.8; }
+.issue-badge-active:hover { background: var(--accent-soft); color: var(--accent); }
 
 .csv-btn {
   margin-left: auto; display: flex; align-items: center; gap: 5px;
