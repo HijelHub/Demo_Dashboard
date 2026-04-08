@@ -298,7 +298,7 @@ const App = (() => {
           </a>
           <a class="repo-badge" href="${repoUrl}/network/members" target="_blank" rel="noopener noreferrer" title="Forks">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 0-1.5 0v.878H6.75v-.878a2.25 2.25 0 1 0-1.5 0ZM8 13.5a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Zm0-8.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM4.25 5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm7.5 0a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM8 9v2.5"/></svg>
-            Forks
+            ${fmt(forks)}
           </a>
           <a class="repo-badge" href="${repoUrl}/issues" target="_blank" rel="noopener noreferrer" title="Issues">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M8 4.5v4M8 10.5v.5"/></svg>
