@@ -25,20 +25,19 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
+    env:
+      ENCRYPT_KEY: ${{ secrets.ENCRYPT_KEY }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Fetch traffic data
         env:
           GHTRAFFIC_TOKEN: ${{ secrets.GHTRAFFIC_TOKEN }}
-          ENCRYPT_KEY: ${{ secrets.ENCRYPT_KEY }}
         run: node scripts/fetch-traffic.js
 
       - name: Encrypt data (if key exists)
         if: env.ENCRYPT_KEY != ''
-        env:
-          ENCRYPT_KEY: ${{ secrets.ENCRYPT_KEY }}
         run: node scripts/encrypt.js
 
       - name: Commit updated data
