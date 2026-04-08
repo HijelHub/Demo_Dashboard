@@ -15,12 +15,15 @@
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const TOKEN = process.env.GHTRAFFIC_TOKEN;
 if (!TOKEN) {
   console.log("No GHTRAFFIC_TOKEN set — skipping data collection.");
   process.exit(0);
 }
+
+const ENCRYPT_KEY = process.env.ENCRYPT_KEY || null;
 
 const CONFIG_PATH = path.join(__dirname, "..", "config.json");
 const DATA_DIR = path.join(__dirname, "..", "data");
@@ -62,6 +65,29 @@ function apiGet(endpoint) {
     req.on("error", reject);
     req.end();
   });
+}
+
+// ── Decrypt helper ───────────────────────────────────────────────────────────
+
+const ITERATIONS = 100000;
+const KEY_LENGTH = 32;
+
+function decryptData(ciphertextB64, ivB64, saltB64, password) {
+  const salt = Buffer.from(saltB64, "base64");
+  const iv = Buffer.from(ivB64, "base64");
+  const ciphertextWithTag = Buffer.from(ciphertextB64, "base64");
+
+  const authTag = ciphertextWithTag.subarray(ciphertextWithTag.length - 16);
+  const ciphertext = ciphertextWithTag.subarray(0, ciphertextWithTag.length - 16);
+
+  const key = crypto.pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, "sha256");
+
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+  decipher.setAuthTag(authTag);
+  let decrypted = decipher.update(ciphertext);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+  return decrypted.toString("utf8");
 }
 
 // ── Merge helpers ────────────────────────────────────────────────────────────
@@ -116,8 +142,19 @@ async function processRepo(repoFullName) {
     try {
       const raw = JSON.parse(fs.readFileSync(filepath, "utf8"));
       if (raw.format === "encrypted") {
-        console.log("  ⚠  Encrypted file detected — cannot merge without key. Skipping merge, will overwrite data portion.");
-        existing = { data: { views: [], clones: [], referrers: [] } };
+        if (ENCRYPT_KEY) {
+          try {
+            const decryptedJson = decryptData(raw.ciphertext, raw.iv, raw.salt, ENCRYPT_KEY);
+            existing = { data: JSON.parse(decryptedJson) };
+            console.log("  ✓  Decrypted existing data for merge.");
+          } catch {
+            console.log("  ⚠  Could not decrypt existing data — wrong key? Starting fresh.");
+            existing = { data: { views: [], clones: [], referrers: [] } };
+          }
+        } else {
+          console.log("  ⚠  Encrypted file detected but no ENCRYPT_KEY set — cannot merge. Starting fresh.");
+          existing = { data: { views: [], clones: [], referrers: [] } };
+        }
       } else {
         existing = raw;
       }
