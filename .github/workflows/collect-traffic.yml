@@ -32,6 +32,7 @@ jobs:
       - name: Fetch traffic data
         env:
           GHTRAFFIC_TOKEN: ${{ secrets.GHTRAFFIC_TOKEN }}
+          ENCRYPT_KEY: ${{ secrets.ENCRYPT_KEY }}
         run: node scripts/fetch-traffic.js
 
       - name: Encrypt data (if key exists)
